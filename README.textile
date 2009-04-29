@@ -1,0 +1,45 @@
+h1. MNML WSGI Web Framework
+
+A small python glue framework for building web applications and services that 
+run atop WSGI compliant servers. The emphasis is on HTTP best practices, 
+readable code and allowing applications to be built using whatever
+other python modules you like.
+
+MNML's core philosophy is that we really love writing Python and want to do that for most things, but I also want a certain level of "plumbing" taken care of. In addition, MNML:
+
+* Is strictly WSGI;
+* Provides URL mapping to HTTP response relationship, aka routing;
+* Provides methods for all HTTP method verbs (PUT and DELETE are supported);
+* Provides the ability to add middleware functions so one can alter the request or response as required;
+* Does not dictate the template or ORM layer you should use - MNML is strictly about URL routing and serving, and tools needed to do so; and mostly
+* Lets the implementer write Python, not a sub-set of Python.
+
+h2. MNML is
+
+* Small - the framework is around 400 lines of code, and a lot of those are comments.
+* Fast - 
+* WSGI - so you can make use of a range of available WSGI middleware.
+* Tested - at least a bit. The module includes a test runner and a growing suite of tests.
+
+h2. Hello World
+
+<pre>from mnml import RegexBasedApplication, RequestHandler, HttpResponse, development_server
+
+class HelloWorld(RequestHandler):
+    def GET(self):
+        return HttpResponse("<h1>Hello World</h1>")
+        
+routes = (
+    (r'^/$', HelloWorld),
+)
+application = RegexBasedApplication(routes)
+
+if __name__ == '__main__':
+    development_server(application)</pre>
+    
+h2. Credits
+
+Original version of MNML by Bradley Wright ("intranation.com":http://intranation.com) with further work by Gareth Rushgrove ("morethanseven.net":http://morethanseven.net).
+
+MNML has borrowed fairly heavily from newf, since that's 
+basically the bare minimum code required for a routed WSGI framework. Webapp, the framework included with the Google App Engine SDK, has also provided inspiration and code.
