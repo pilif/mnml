@@ -159,14 +159,14 @@ class HttpResponse(object):
         
         # lets assume text/html unless told otherwise
         if not 'content-type' in self.headers:
-            self._headers['content-type'] = 'text/html'
+            self._headers['content-type'] = 'text/html; charset=utf-8'
         
     def get_status(self):
         "Get the status code and message, but make sure it's valid first"
         if self.status_code not in self.codes:
             # invalid code, so something has gone wrong
             self.status_code = 500
-        return "{0} {1}".format(self.status_code, self.codes[self.status_code]).encode('ascii')
+        return "{0} {1}".format(self.status_code, self.codes[self.status_code])
         
     def set_status(self, code):
         "API setter method"
@@ -189,10 +189,7 @@ class HttpResponse(object):
         return [self._content, '\n']
         
     def set_content(self, value):
-        "Set the body of the response, ensuring we're using utf-8"
-        # http://www.python.org/dev/peps/pep-0333/#unicode-issues
-        if isinstance(value, str):
-            value = value.encode('utf-8')
+        "Set the body of the response"
         self._content = value
         
     # make the important parts of the response properties of the object
@@ -241,7 +238,7 @@ class WebApplication(object):
                     '<h1>Page Not Found</h1>', status_code=404)
 
         start_response(response.status, response.get_headers())
-        return response.content
+        return [c.encode('utf-8') for c in response.content]
 
     def create_response(self, environ):
         "Takes the environment and returns a response object or None"

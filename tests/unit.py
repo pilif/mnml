@@ -41,26 +41,26 @@ class UnitTest(CommonTest):
         
     def test_response_default_content_type(self):
         response = HttpResponse()
-        self.assertEqual(response.headers[1][1], 'text/html')
+        self.assertEqual(response.headers[1][1], 'text/html; charset=utf-8')
         
     def test_response_set_invalid_code(self):
         response = HttpResponse()
         response.set_status(900)
-        self.assertEqual(response.get_status(), b'500 Internal Server Error')
+        self.assertEqual(response.get_status(), '500 Internal Server Error')
 
     def test_response_headers(self):
         response = HttpResponse()
-        self.assertEqual(response.get_headers(), [('content-length', '0'), ('content-type', 'text/html')])
+        self.assertEqual(response.get_headers(), [('content-length', '0'), ('content-type', 'text/html; charset=utf-8')])
 
     def test_get_content(self):
         response = HttpResponse()
-        self.assertEqual(response.get_content(), [b'', '\n'])
+        self.assertEqual(response.get_content(), ['', '\n'])
 
     def test_response_properties(self):
         response = HttpResponse()
-        self.assertEqual(response.headers, [('content-length', '0'), ('content-type', 'text/html')])
-        self.assertEqual(response.content, [b'', '\n'])
-        self.assertEqual(response.status, b'200 OK')
+        self.assertEqual(response.headers, [('content-length', '0'), ('content-type', 'text/html; charset=utf-8')])
+        self.assertEqual(response.content, ['', '\n'])
+        self.assertEqual(response.status, '200 OK')
 
 if __name__ == "__main__":
     unittest.main()
