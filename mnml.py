@@ -16,6 +16,7 @@ basically the bare minimum code required for a routed WSGI framework.
 import re
 import sys
 import cgi
+import urllib.parse
 from wsgiref.simple_server import make_server
 
 # limit exports
@@ -90,7 +91,7 @@ class HttpRequest(object):
         # if we have any query string arguments then we'll make then
         # more easily accessible
         if len(environ['QUERY_STRING']):
-            self.GET = cgi.parse_qs(environ['QUERY_STRING'])
+            self.GET = urllib.parse.parse_qs(environ['QUERY_STRING'])
         
         # if we have post data we'll make that more accessible too
         if self.method == 'POST':
