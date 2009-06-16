@@ -85,7 +85,7 @@ class HttpRequest(object):
         # http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
         if self.method not in ('POST', 'GET', 'DELETE', 'PUT', 'HEAD', 
                                 'OPTIONS', 'TRACE'):
-            raise HttpError, "Invalid request"
+            raise HttpError("Invalid request")
         
         # if we have any query string arguments then we'll make then
         # more easily accessible
@@ -173,7 +173,7 @@ class HttpResponse(object):
         
     def get_headers(self):
         "Return the headers as a list"
-        return list(self._headers.iteritems())
+        return list(self._headers.items())
         
     def set_headers(self, *args):
         "Set the response headers, takes either a key/value or a dictionary"
@@ -190,7 +190,7 @@ class HttpResponse(object):
     def set_content(self, value):
         "Set the body of the response, ensuring we're using utf-8"
         # http://www.python.org/dev/peps/pep-0333/#unicode-issues
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode('utf-8')
         self._content = value
         
@@ -300,7 +300,7 @@ class RegexBasedApplication(WebApplication):
                     response = handler.DELETE(*groups)
                 elif method == 'TRACE':
                     response = handler.TRACE(*groups)
-            except Exception, e:
+            except Exception as e:
                 # capture any exceptions so we can throw a relevant error
                 return handler.error(500, e)
         
@@ -352,7 +352,7 @@ class TokenBasedApplication(WebApplication):
                         response = handler.DELETE(*groups)
                     elif method == 'TRACE':
                         response = handler.TRACE(*groups)
-                except Exception, e:
+                except Exception as e:
                     # capture any exceptions so we can throw a relevant error
                     return handler.error(500, e)
                 finally:
@@ -402,7 +402,7 @@ def development_server(application, port=8000):
     
     server = make_server('', port, application)
     
-    print 'MNML now running on http://127.0.0.1:%s\n' % port
+    print('MNML now running on http://127.0.0.1:%s\n' % port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

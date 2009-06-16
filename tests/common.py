@@ -74,14 +74,14 @@ class CommonTest(unittest.TestCase):
         for key in sorted(kwargs.keys()):
             expected = kwargs[key]
             actual = getattr(obj, key)
-            self.assert_equal(expected, actual, u"Object's %s expected to be `%s', is `%s' instead" % (key, expected, actual))
+            self.assert_equal(expected, actual, "Object's %s expected to be `%s', is `%s' instead" % (key, expected, actual))
 
     def assert_key_exists(self, key, item):
         "Assert than a given key exists in a given item"
         try:
             self.assertTrue(key in item)
         except AssertionError:
-            print 'no %s in %s' % (key, item)
+            print('no %s in %s' % (key, item))
             raise AssertionError 
 
     def assert_file_exists(self, file_path):

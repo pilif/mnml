@@ -18,7 +18,7 @@ directory and they should be run when you run test.py via the command line.
 
 import os
 import unittest
-import coverage
+#import coverage
 from optparse import OptionParser
      
 def run_tests(verbosity):
@@ -61,24 +61,24 @@ def run_tests(verbosity):
             test_modules.append(module)
         
     # populate a test suite from the individual tests from the list of modules
-    suite = unittest.TestSuite(map(
-        unittest.defaultTestLoader.loadTestsFromModule, test_modules))
+    suite = unittest.TestSuite(list(map(
+        unittest.defaultTestLoader.loadTestsFromModule, test_modules)))
 
     # set up the test runner
     runner = unittest.TextTestRunner(verbosity=int(verbosity))
     
     # set up coverage reporting
-    coverage.use_cache(0)
-    coverage.start()
+#    coverage.use_cache(0)
+#    coverage.start()
     
     # run the tests
     runner.run(suite)
     
     # stop coverage reporting
-    coverage.stop()
+#    coverage.stop()
     
     # output coverage report
-    coverage.report(code_modules, show_missing=1)
+#    coverage.report(code_modules, show_missing=1)
     
 if __name__ == '__main__':
     # instantiate the arguments parser

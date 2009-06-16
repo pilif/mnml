@@ -4,7 +4,7 @@ import sys
 import os
 import unittest
 
-from common import CommonTest
+from .common import CommonTest
 
 # insert application path
 app_path = os.path.join(
