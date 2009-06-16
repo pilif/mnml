@@ -50,7 +50,7 @@ class UnitTest(CommonTest):
 
     def test_response_headers(self):
         response = HttpResponse()
-        self.assertEqual(response.get_headers(), [('content-length', '0'), ('content-type', 'text/html'), ('Location', '/')])
+        self.assertEqual(response.get_headers(), [('content-length', '0'), ('content-type', 'text/html')])
 
     def test_get_content(self):
         response = HttpResponse()
@@ -58,7 +58,7 @@ class UnitTest(CommonTest):
 
     def test_response_properties(self):
         response = HttpResponse()
-        self.assertEqual(response.headers, [('content-length', '0'), ('content-type', 'text/html'), ('Location', '/')])
+        self.assertEqual(response.headers, [('content-length', '0'), ('content-type', 'text/html')])
         self.assertEqual(response.content, [b'', '\n'])
         self.assertEqual(response.status, '200 OK')
 
