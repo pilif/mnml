@@ -166,7 +166,7 @@ class HttpResponse(object):
         if self.status_code not in self.codes:
             # invalid code, so something has gone wrong
             self.status_code = 500
-        return "%s %s" % (self.status_code, self.codes[self.status_code])
+        return "{0} {1}".format(self.status_code, self.codes[self.status_code]).encode('ascii')
         
     def set_status(self, code):
         "API setter method"
