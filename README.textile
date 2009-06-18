@@ -36,3 +36,5 @@ Original version of MNML by Bradley Wright ("intranation.com":http://intranation
 
 MNML has borrowed fairly heavily from newf, since that's 
 basically the bare minimum code required for a routed WSGI framework. Webapp, the framework included with the Google App Engine SDK, has also provided inspiration and code.
+
+Ported to Python 3 by Philip Hofstetter ("gnegg.ch":http://www.gnegg.ch). Works with both the internal server and mod_wsgi trunk.
