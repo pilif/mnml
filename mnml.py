@@ -127,18 +127,26 @@ class HttpError(Exception):
 
     code = None
     description = None
-    body = None
+    _body = None
     headers = None
 
     def __init__(self, code=500, body=None, headers=None):
         self.headers = headers if headers is not None else {}
 
         self.code = code
-        if body is None:
-            self.body = HTTP_STATUS_CODES[code]
+        self._body = body
+        Exception.__init__(self, '{0:d} {1}'.format(self.code, HTTP_STATUS_CODES[self.code]))
+
+    @property
+    def body(self):
+        if (self._body is None):
+            return HTTP_STATUS_CODES[self.code]
         else:
-            self.body = body
-        Exception.__init__(self, '{0:d} {1}'.format(self.code, self.name))
+            return self._body
+
+    @body.setter
+    def body(self, body):
+            self._body = body
 
     @property
     def name(self):
