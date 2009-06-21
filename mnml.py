@@ -3,12 +3,12 @@
 """
 MNML WSGI Web Framework
 
-A small python glue framework for building web applications and services that 
-run atop WSGI compliant servers. The emphasis is on HTTP best practices, 
+A small python glue framework for building web applications and services that
+run atop WSGI compliant servers. The emphasis is on HTTP best practices,
 readble code and allowing applications to be built with using whatever
 other python modules you like.
 
-MNML has borrowed fairly heavily from newf, since that's 
+MNML has borrowed fairly heavily from newf, since that's
 basically the bare minimum code required for a routed WSGI framework.
 
 """
@@ -21,7 +21,7 @@ from wsgiref.simple_server import make_server
 
 # limit exports
 __all__ = [
-    'HttpRequest', 'HttpResponse', 'HttpResponseRedirect', 'RequestHandler', 
+    'HttpRequest', 'HttpResponse', 'HttpResponseRedirect', 'RequestHandler',
     'development_server', 'TokenBasedApplication', 'RegexBasedApplication',
 ]
     
@@ -63,42 +63,42 @@ class RequestHandler(object):
     def TRACE(self, *args):
         "Handler method for TRACE requests."
         return self.error(405)
-        
+
     def error(self, code, message=''):
-        "Sets the given HTTP error code."      
+        "Sets the given HTTP error code."
         return HttpResponse(message, status_code=code)
-        
+
 class HttpError(Exception):
     "Generic exception for HTTP issues"
     pass
 
 class HttpRequest(object):
     "Our request object which stores information about the HTTP request"
-    
+
     def __init__(self, environ):
         "Initialise our request with an environment"
         self.POST = self.GET = {}
         self.environ = environ
-        # we often want access to the method so we'll make that 
+        # we often want access to the method so we'll make that
         # easier to get at
         self.method = environ['REQUEST_METHOD']
-        
+
         # http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
-        if self.method not in ('POST', 'GET', 'DELETE', 'PUT', 'HEAD', 
+        if self.method not in ('POST', 'GET', 'DELETE', 'PUT', 'HEAD',
                                 'OPTIONS', 'TRACE'):
             raise HttpError("Invalid request")
-        
+
         # if we have any query string arguments then we'll make then
         # more easily accessible
         if len(environ['QUERY_STRING']):
             self.GET = urllib.parse.parse_qs(environ['QUERY_STRING'])
-        
+
         # if we have post data we'll make that more accessible too
         if self.method == 'POST':
-            self.POST = cgi.FieldStorage(fp=environ['wsgi.input'], 
-                                         environ=environ, 
+            self.POST = cgi.FieldStorage(fp=environ['wsgi.input'],
+                                         environ=environ,
                                          keep_blank_values=1)
-        
+
         # like PHP's $_REQUEST - but you should usually be more explicit
         self.REQUEST = self.GET.copy()
         self.REQUEST.update(self.POST)
@@ -156,11 +156,11 @@ class HttpResponse(object):
         self.set_content(content)
         self._headers = headers
         self._headers['content-length'] = str(len(content))
-        
+
         # lets assume text/html unless told otherwise
         if not 'content-type' in self.headers:
             self._headers['content-type'] = 'text/html; charset=utf-8'
-        
+
     def get_status(self):
         "Get the status code and message, but make sure it's valid first"
         if self.status_code not in self.codes:
@@ -171,11 +171,11 @@ class HttpResponse(object):
     def set_status(self, code):
         "API setter method"
         self.status_code = code
-        
+
     def get_headers(self):
         "Return the headers as a list"
         return list(self._headers.items())
-        
+
     def set_headers(self, *args):
         "Set the response headers, takes either a key/value or a dictionary"
         if type(args[0]).__name__ == 'dict':
@@ -183,23 +183,23 @@ class HttpResponse(object):
         else:
             key, value = args
             self._headers[key] = value
-        
+
     def get_content(self):
         "Return the body of the response in a useful format"
         return [self._content, '\n']
-        
+
     def set_content(self, value):
         "Set the body of the response"
         self._content = value
-        
+
     # make the important parts of the response properties of the object
     content = property(get_content, set_content)
     status = property(get_status, set_status)
     headers = property(get_headers, set_headers)
-    
+
 class HttpResponseRedirect(HttpResponse):
     "Sub class of HttpResponse making redirects easier to handle"
-    def __init__(self, redirect_location, permanent=True):        
+    def __init__(self, redirect_location, permanent=True):
         super(HttpResponseRedirect, self).__init__()
         self._headers['Location'] = redirect_location
         # allow us to set whether we want a 301 or 302 redirect
@@ -207,12 +207,12 @@ class HttpResponseRedirect(HttpResponse):
             self.status_code = 301
         else:
             self.status_code = 302
-    
+
 class WebApplication(object):
     """
     Accepts a set of routes and provides a WSGI application.
     This specific class is intended to be subclassed depending on
-    what sort of routing engine you want to use. If used it will 
+    what sort of routing engine you want to use. If used it will
     always return a 404.
     """
 
@@ -243,13 +243,13 @@ class WebApplication(object):
     def create_response(self, environ):
         "Takes the environment and returns a response object or None"
         return None
-    
+
 class RegexBasedApplication(WebApplication):
     """
     Example Application using a regex based scheme for routing.
     This is slightly faster and allows more detailed routes
     at the expense of making reversing impossible. Routes look like:
-    
+
     routes = (
         (r'^/foo/([0-9]+)/([0-9]+)', Foo),
         (r'^/bar$', Bar),
@@ -263,7 +263,7 @@ class RegexBasedApplication(WebApplication):
         response = None
         # get the request from the environment
         request = HttpRequest(environ)
-        
+
         # compile all the individual regexs
         routes = tuple((re.compile(a), b) for a, b in self.routes)
         # for each regex, class pair
@@ -276,10 +276,10 @@ class RegexBasedApplication(WebApplication):
                 # and grab the matched segments
                 groups = match.groups()
                 break
-        
+
         # if we found a relevant handler
         if handler:
-            # try the request method to see if the 
+            # try the request method to see if the
             # handler supports it and if so then
             # call the method
             try:
@@ -299,20 +299,22 @@ class RegexBasedApplication(WebApplication):
                 elif method == 'TRACE':
                     response = handler.TRACE(*groups)
             except Exception as e:
-                # capture any exceptions so we can throw a relevant error
-                return handler.error(500, e)
-        
-            
+                if isinstance(e, HttpError):
+                    return e
+                else:
+                    return handler.error(500, e)
+
+
         # eventually return the response, which if we didn't find
         # one will be None
         return response
-    
+
 class TokenBasedApplication(WebApplication):
     """
     Example Application using a simple token based scheme for routing.
-    This has the advantage of making reversing relatively simple. 
+    This has the advantage of making reversing relatively simple.
     Routes look like:
-    
+
     routes = (
         ('/', Foo),
         ('/myview/:stuff/', Bar)
@@ -323,7 +325,7 @@ class TokenBasedApplication(WebApplication):
         response = None
         groups = []
         request = HttpRequest(environ)
-        
+
         for pair in self.routes:
             route, view = pair
             matches = re.match(self._route_master(route), environ['PATH_INFO'])
@@ -331,7 +333,7 @@ class TokenBasedApplication(WebApplication):
             # if we found a match
             if matches:
                 handler = view(request)
-                # try the request method to see if the 
+                # try the request method to see if the
                 # handler supports it and if so then
                 # call the method
                 try:
@@ -365,16 +367,16 @@ class TokenBasedApplication(WebApplication):
         # chop off leading slash
         if route.startswith('/'):
             route = route[1:]
-        
+
         trailing_slash = False
         # check end slash and remember to keep it
         if route.endswith('/'):
             route = route[:-1]
             trailing_slash = True
-        
+
         # split into path components
         bits = route.split('/')
-    
+
         # compiled match starts with a slash,
         #  so we make it a list so we can join later
         regex = ['']
@@ -387,19 +389,19 @@ class TokenBasedApplication(WebApplication):
             else:
                 # just a string/static path component
                 regex.append(path_component)
-            
+
         # stick the trailing slash back on
         if trailing_slash:
             regex.append('')
-        
+
         # stitch it back together as a path
-        return '^%s$' % '/'.join(regex)        
+        return '^%s$' % '/'.join(regex)
 
 def development_server(application, port=8000):
     "A simple WSGI development server"
-    
+
     server = make_server('', port, application)
-    
+
     print('MNML now running on http://127.0.0.1:%s\n' % port)
     try:
         server.serve_forever()
