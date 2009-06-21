@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from mnml import TokenBasedApplication, RegexBasedApplication, \
-                 RequestHandler, HttpResponse, HttpResponseRedirect, \
+                 RequestHandler, HttpError, HttpResponse, HttpResponseRedirect, \
                  development_server
 
 # a MNML application consists of a series of RequestHandlers which return
@@ -35,6 +35,11 @@ class Bar(RequestHandler):
     def DELETE(self):
         "Demonstration of using a 302 redirect"
         return HttpResponseRedirect("/", False)
+
+class RaisesException(RequestHandler):
+    "A handler that throws a HTTP exception"
+    def GET(self):
+        raise HttpError(400)
     
 class NotFoundPageHandler(RequestHandler):
     """
@@ -59,6 +64,7 @@ routes = (
     (r'^/$', Foo),
     (r'^/foo/([0-9]+)/([0-9]+)', Foo),
     (r'^/bar$', Bar),
+    (r'^/exception$', RaisesException),
     ('/.*', NotFoundPageHandler),
 )
 application = RegexBasedApplication(routes)

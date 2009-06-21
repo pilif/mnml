@@ -24,7 +24,61 @@ __all__ = [
     'HttpRequest', 'HttpResponse', 'HttpResponseRedirect', 'RequestHandler',
     'development_server', 'TokenBasedApplication', 'RegexBasedApplication',
 ]
-    
+
+HTTP_STATUS_CODES = {
+    100:    'Continue',
+    101:    'Switching Protocols',
+    102:    'Processing',
+    200:    'OK',
+    201:    'Created',
+    202:    'Accepted',
+    203:    'Non Authoritative Information',
+    204:    'No Content',
+    205:    'Reset Content',
+    206:    'Partial Content',
+    207:    'Multi Status',
+    226:    'IM Used',
+    300:    'Multiple Choices',
+    301:    'Moved Permanently',
+    302:    'Found',
+    303:    'See Other',
+    304:    'Not Modified',
+    305:    'Use Proxy',
+    307:    'Temporary Redirect',
+    400:    'Bad Request',
+    401:    'Unauthorized',
+    402:    'Payment Required',
+    403:    'Forbidden',
+    404:    'Not Found',
+    405:    'Method Not Allowed',
+    406:    'Not Acceptable',
+    407:    'Proxy Authentication Required',
+    408:    'Request Timeout',
+    409:    'Conflict',
+    410:    'Gone',
+    411:    'Length Required',
+    412:    'Precondition Failed',
+    413:    'Request Entity Too Large',
+    414:    'Request URI Too Long',
+    415:    'Unsupported Media Type',
+    416:    'Requested Range Not Satisfiable',
+    417:    'Expectation Failed',
+    422:    'Unprocessable Entity',
+    423:    'Locked',
+    424:    'Failed Dependency',
+    426:    'Upgrade Required',
+    449:    'Retry With',
+    500:    'Internal Server Error',
+    501:    'Not Implemented',
+    502:    'Bad Gateway',
+    503:    'Service Unavailable',
+    504:    'Gateway Timeout',
+    505:    'HTTP Version Not Supported',
+    507:    'Insufficient Storage',
+    510:    'Not Extended'
+}
+
+
 class RequestHandler(object):
     """
     Our base HTTP request handler. Clients should subclass this class.
@@ -70,7 +124,30 @@ class RequestHandler(object):
 
 class HttpError(Exception):
     "Generic exception for HTTP issues"
-    pass
+
+    code = None
+    description = None
+    body = None
+    headers = None
+
+    def __init__(self, code=500, body=None, headers=None):
+        self.headers = headers if headers is not None else {}
+
+        self.code = code
+        if body is None:
+            self.body = HTTP_STATUS_CODES[code]
+        else:
+            self.body = body
+        Exception.__init__(self, '{0:d} {1}'.format(self.code, self.name))
+
+    @property
+    def name(self):
+        "Returns the HTTP error name"
+        return HTTP_STATUS_CODES[self.code]
+
+    def get_http_response(self):
+        return HttpResponse(self.body, self.headers, self.code)
+
 
 class HttpRequest(object):
     "Our request object which stores information about the HTTP request"
@@ -105,51 +182,7 @@ class HttpRequest(object):
 
 class HttpResponse(object):
     "Our Response object"
-    
-    # http://www.faqs.org/rfcs/rfc2616.html
-    codes = {
-        100: "Continue", 
-        101: "Switching Protocols", 
-        200: "OK", 
-        201: "Created", 
-        202: "Accepted", 
-        203: "Non-Authoritative Information", 
-        204: "No Content", 
-        205: "Reset Content", 
-        206: "Partial Content", 
-        300: "Multiple Choices", 
-        301: "Moved Permanently", 
-        302: "Found", 
-        303: "See Other", 
-        304: "Not Modified", 
-        305: "Use Proxy", 
-        307: "Temporary Redirect", 
-        400: "Bad Request", 
-        401: "Unauthorized", 
-        402: "Payment Required", 
-        403: "Forbidden", 
-        404: "Not Found", 
-        405: "Method Not Allowed", 
-        406: "Not Acceptable",
-        407: "Proxy Authentication Required", 
-        408: "Request Time-out", 
-        409: "Conflict", 
-        410: "Gone", 
-        411: "Length Required", 
-        412: "Precondition Failed", 
-        413: "Request Entity Too Large", 
-        414: "Request-URI Too Large", 
-        415: "Unsupported Media Type", 
-        416: "Requested range not satisfiable", 
-        417: "Expectation Failed", 
-        500: "Internal Server Error", 
-        501: "Not Implemented", 
-        502: "Bad Gateway", 
-        503: "Service Unavailable", 
-        504: "Gateway Time-out", 
-        505: "HTTP Version not supported",
-    }
-    
+
     def __init__(self, content='', headers={}, status_code=200):
         "Initialise our response, assuming everything is fine"
         self.status_code = status_code
@@ -163,11 +196,11 @@ class HttpResponse(object):
 
     def get_status(self):
         "Get the status code and message, but make sure it's valid first"
-        if self.status_code not in self.codes:
+        if self.status_code not in HTTP_STATUS_CODES:
             # invalid code, so something has gone wrong
             self.status_code = 500
-        return "{0} {1}".format(self.status_code, self.codes[self.status_code])
-        
+        return "{0} {1}".format(self.status_code, HTTP_STATUS_CODES[self.status_code])
+
     def set_status(self, code):
         "API setter method"
         self.status_code = code
@@ -223,8 +256,12 @@ class WebApplication(object):
 
         response = self.create_response(environ)
 
+        if isinstance(response, HttpError):
+            response = response.get_http_response()
+
         # we don't have a valid response
         if not isinstance(response, HttpResponse):
+
             try:
                 # must times not having a response means we didn't match
                 # a handler so this will fail, but just in case
