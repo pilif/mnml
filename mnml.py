@@ -17,6 +17,7 @@ import re
 import sys
 import cgi
 import urllib.parse
+import base64
 from wsgiref.simple_server import make_server
 
 # limit exports
@@ -156,6 +157,13 @@ class HttpError(Exception):
     def get_http_response(self):
         return HttpResponse(self.body, self.headers, self.code)
 
+class Authorization(object):
+    def __init__(self, auth_type, data):
+        if auth_type != 'basic':
+            raise Exception("Only Basic-Auth is supported")
+        self.type = auth_type
+        self.username = data['username']
+        self.password = data['password']
 
 class HttpRequest(object):
     "Our request object which stores information about the HTTP request"
@@ -187,6 +195,28 @@ class HttpRequest(object):
         # like PHP's $_REQUEST - but you should usually be more explicit
         self.REQUEST = self.GET.copy()
         self.REQUEST.update(self.POST)
+
+        self.authorization = None
+        if 'HTTP_AUTHORIZATION' in environ:
+            self.authorization = self.__parse_auth_header(environ['HTTP_AUTHORIZATION'])
+
+    def __parse_auth_header(self, value):
+        print("Parsing auth-header: {0}".format(value))
+        if not value:
+            return
+        try:
+            auth_type, auth_info = value.split(None, 1)
+            print("Auth-Type: {0}".format(auth_type))
+            auth_type = auth_type.lower()
+        except ValueError:
+            return
+        if auth_type == 'basic':
+            try:
+                username, password = base64.decodestring(auth_info.encode('ascii')).decode('utf-8').split(':', 1)
+            except Exception as e:
+                return
+            return Authorization('basic', {'username': username,
+                                           'password': password})
 
 class HttpResponse(object):
     "Our Response object"
