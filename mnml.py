@@ -195,6 +195,8 @@ class HttpRequest(object):
         # like PHP's $_REQUEST - but you should usually be more explicit
         self.REQUEST = self.GET.copy()
         self.REQUEST.update(self.POST)
+        self.path = environ['PATH_INFO'] if 'PATH_INFO' in environ else '/'
+        self.query_string = environ['QUERY_STRING'] if 'QUERY_STRING' in environ else ''
 
         self.authorization = None
         if 'HTTP_AUTHORIZATION' in environ:
