@@ -201,12 +201,10 @@ class HttpRequest(object):
             self.authorization = self.__parse_auth_header(environ['HTTP_AUTHORIZATION'])
 
     def __parse_auth_header(self, value):
-        print("Parsing auth-header: {0}".format(value))
         if not value:
             return
         try:
             auth_type, auth_info = value.split(None, 1)
-            print("Auth-Type: {0}".format(auth_type))
             auth_type = auth_type.lower()
         except ValueError:
             return
