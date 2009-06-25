@@ -13,6 +13,7 @@ basically the bare minimum code required for a routed WSGI framework.
 
 """
 
+import io
 import re
 import sys
 import cgi
@@ -187,14 +188,22 @@ class HttpRequest(object):
             self.GET = urllib.parse.parse_qs(environ['QUERY_STRING'])
 
         # if we have post data we'll make that more accessible too
+        self.post_data = None
         if self.method == 'POST':
-            self.POST = cgi.FieldStorage(fp=environ['wsgi.input'],
-                                         environ=environ,
-                                         keep_blank_values=1)
+            if environ['CONTENT_TYPE'] == 'application/x-www-form-urlencoded':
+                self.POST = cgi.FieldStorage(fp=io.TextIOWrapper(environ['wsgi.input'], "utf-8"),
+                                             environ=environ,
+                                             keep_blank_values=1)
 
-        # like PHP's $_REQUEST - but you should usually be more explicit
-        self.REQUEST = self.GET.copy()
-        self.REQUEST.update(self.POST)
+                # like PHP's $_REQUEST - but you should usually be more explicit
+                self.REQUEST = self.GET.copy()
+                self.REQUEST.update(self.POST)
+            else:
+                try:
+                    cont_len = int(environ['CONTENT_LENGTH'])
+                except (KeyError, ValueError):
+                    raise HttpError(code=400, body="Content length required")
+                self.post_data = environ['wsgi.input'].read(cont_len)
         self.path = environ['PATH_INFO'] if 'PATH_INFO' in environ else '/'
         self.query_string = environ['QUERY_STRING'] if 'QUERY_STRING' in environ else ''
 
