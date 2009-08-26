@@ -323,7 +323,10 @@ class WebApplication(object):
                     '<h1>Page Not Found</h1>', status_code=404)
 
         start_response(response.status, response.get_headers())
-        return [c.encode('utf-8') for c in response.content]
+        for c in response.content:
+            if type(c) is str:
+                c = c.encode('utf-8')
+        return response.content
 
     def create_response(self, environ):
         "Takes the environment and returns a response object or None"
