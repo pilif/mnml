@@ -233,9 +233,8 @@ class HttpResponse(object):
     def __init__(self, content='', headers={}, status_code=200):
         "Initialise our response, assuming everything is fine"
         self.status_code = status_code
-        self.set_content(content)
         self._headers = headers
-        self._headers['content-length'] = str(len(content))
+        self.set_content(content)
 
         # lets assume text/html unless told otherwise
         if not 'content-type' in self.headers:
@@ -271,6 +270,8 @@ class HttpResponse(object):
     def set_content(self, value):
         "Set the body of the response"
         self._content = value
+        self._headers['content-length'] = str(len(value))
+
 
     # make the important parts of the response properties of the object
     content = property(get_content, set_content)
